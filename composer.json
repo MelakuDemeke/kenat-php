@@ -1,0 +1,57 @@
+{
+    "name": "melakudemeke/kenat-php",
+    "description": "A modern PHP library for the Ethiopian calendar: date conversion, formatting, arithmetic, calendar grids, and a full Bahire Hasab implementation.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "ethiopian",
+        "calendar",
+        "ethiopian calendar",
+        "date",
+        "time",
+        "kenat",
+        "habesha",
+        "zemen",
+        "ethiopian date",
+        "geez calendar",
+        "amharic calendar",
+        "date converter",
+        "calendar converter",
+        "ethiopian holidays",
+        "bahire hasab",
+        "abushakir"
+    ],
+    "authors": [
+        {
+            "name": "Melaku Demeke",
+            "email": "melaku.demeke789@gmail.com"
+        }
+    ],
+    "homepage": "https://www.kenat.systems/",
+    "support": {
+        "issues": "https://github.com/MelakuDemeke/kenat-php/issues",
+        "source": "https://github.com/MelakuDemeke/kenat-php"
+    },
+    "require": {
+        "php": ">=8.1",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kenat\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Kenat\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

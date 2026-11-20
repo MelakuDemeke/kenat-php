@@ -1,5 +1,7 @@
 # Kenat PHP / ቀናት
 
+![Kenat / ቀናት — Ethiopian calendar library for PHP](assets/img/kenat-php-banner.png)
+
 A modern PHP library for the Ethiopian calendar: bidirectional Ethiopian ↔ Gregorian date
 conversion, Amharic/English/Geez formatting, date arithmetic, calendar grid generation, and a
 full **Bahire Hasab (ባሕረ ሃሳብ)** implementation for computing movable religious holidays and

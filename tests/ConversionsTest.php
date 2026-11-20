@@ -6,6 +6,7 @@ namespace Kenat\Tests;
 
 use Kenat\Conversions;
 use Kenat\Exceptions\InvalidGregorianDateException;
+use Kenat\Utils;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -36,6 +37,10 @@ final class ConversionsTest extends TestCase
             'Meskerem 1, 1964 (base date) -> Sep 12, 1971' => [1964, 1, 1, 1971, 9, 12],
             'Pagume 6, 2007 (leap) -> Sep 11, 2015' => [2007, 13, 6, 2015, 9, 11],
             'Pagume 5, 2006 (non-leap) -> Sep 10, 2014' => [2006, 13, 5, 2014, 9, 10],
+            'Yekatit 23, 1888 (Battle of Adwa) -> Mar 1, 1896' => [1888, 6, 23, 1896, 3, 1],
+            'Pagume 6, 2091 (leap) -> Sep 11, 2099' => [2091, 13, 6, 2099, 9, 11],
+            'Meskerem 1, 2092 -> Sep 12, 2099' => [2092, 1, 1, 2099, 9, 12],
+            'Meskerem 1, 2093 -> Sep 12, 2100 (2100 is not a Gregorian leap year)' => [2093, 1, 1, 2100, 9, 12],
         ];
     }
 
@@ -95,5 +100,45 @@ final class ConversionsTest extends TestCase
         $g = Conversions::toGC(2017, 5, 12);
         $e = Conversions::toEC($g->year, $g->month, $g->day);
         $this->assertSame(['year' => 2017, 'month' => 5, 'day' => 12], $e->toArray());
+    }
+
+    /**
+     * @dataProvider ethiopianNewYearProvider
+     */
+    public function testGregorianDateOfEthiopianNewYear(int $ey, int $gy, int $gm, int $gd): void
+    {
+        $expected = ['gregorianYear' => $gy, 'month' => $gm, 'day' => $gd];
+        $this->assertSame($expected, Utils::getGregorianDateOfEthiopianNewYear($ey));
+        $this->assertSame($expected, Utils::getEthiopianNewYearForGregorian($gy));
+    }
+
+    public static function ethiopianNewYearProvider(): array
+    {
+        return [
+            '1876 -> Sep 11, 1883' => [1876, 1883, 9, 11],
+            '1888 -> Sep 11, 1895' => [1888, 1895, 9, 11],
+            '1892 -> Sep 11, 1899' => [1892, 1899, 9, 11],
+            '1893 -> Sep 11, 1900' => [1893, 1900, 9, 11],
+            '2016 -> Sep 12, 2023' => [2016, 2023, 9, 12],
+            '2092 -> Sep 12, 2099' => [2092, 2099, 9, 12],
+            '2093 -> Sep 12, 2100' => [2093, 2100, 9, 12],
+        ];
+    }
+
+    public function testRoundTripEveryDayInSupportedRange(): void
+    {
+        $date = new \DateTimeImmutable('1900-01-01', new \DateTimeZone('UTC'));
+        $end = new \DateTimeImmutable('2100-12-31', new \DateTimeZone('UTC'));
+        $oneDay = new \DateInterval('P1D');
+        $failures = [];
+        for (; $date <= $end; $date = $date->add($oneDay)) {
+            $e = Conversions::fromDateToEC($date);
+            $back = Conversions::toGC($e->year, $e->month, $e->day);
+            $expected = ['year' => (int) $date->format('Y'), 'month' => (int) $date->format('n'), 'day' => (int) $date->format('j')];
+            if ($back->toArray() !== $expected) {
+                $failures[] = $date->format('Y-m-d');
+            }
+        }
+        $this->assertSame([], $failures);
     }
 }

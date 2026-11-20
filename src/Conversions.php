@@ -48,19 +48,9 @@ final class Conversions
 
         $newYear = Utils::getGregorianDateOfEthiopianNewYear($ethYear);
         $daysSinceNewYear = ($ethMonth - 1) * 30 + $ethDay - 1;
-        $newYearDOY = Utils::dayOfYear($newYear['gregorianYear'], $newYear['month'], $newYear['day']);
-        $gregorianDOY = $newYearDOY + $daysSinceNewYear;
-        $gregorianYear = $newYear['gregorianYear'];
-        $yearLength = Utils::isGregorianLeapYear($gregorianYear) ? 366 : 365;
+        $newYearJdn = Utils::gregorianToJdn($newYear['gregorianYear'], $newYear['month'], $newYear['day']);
 
-        if ($gregorianDOY > $yearLength) {
-            $gregorianDOY -= $yearLength;
-            $gregorianYear += 1;
-        }
-
-        $monthDay = Utils::monthDayFromDayOfYear($gregorianYear, $gregorianDOY);
-
-        return new GregorianDate($gregorianYear, $monthDay['month'], $monthDay['day']);
+        return Utils::jdnToGregorian($newYearJdn + $daysSinceNewYear);
     }
 
     /**
@@ -146,7 +136,7 @@ final class Conversions
             $hijri = self::jdnToHijri($jdn);
 
             if ($hijri['year'] === $hYear && $hijri['month'] === $hMonth && $hijri['day'] === $hDay) {
-                $gregorian = self::jdnToGregorian($jdn);
+                $gregorian = Utils::jdnToGregorian($jdn);
                 if ($gregorian->year === $gregorianYear) {
                     $result = new DateTimeImmutable(
                         sprintf('%04d-%02d-%02d', $gregorian->year, $gregorian->month, $gregorian->day),
@@ -160,26 +150,6 @@ final class Conversions
 
         self::$hijriToGregorianCache[$cacheKey] = null;
         return null;
-    }
-
-    /**
-     * Converts a Julian Day Number to a Gregorian date (proleptic Gregorian calendar).
-     */
-    private static function jdnToGregorian(int $jdn): GregorianDate
-    {
-        $a = $jdn + 32044;
-        $b = intdiv(4 * $a + 3, 146097);
-        $c = $a - intdiv(146097 * $b, 4);
-
-        $d = intdiv(4 * $c + 3, 1461);
-        $e = $c - intdiv(1461 * $d, 4);
-        $m = intdiv(5 * $e + 2, 153);
-
-        $day = $e - intdiv(153 * $m + 2, 5) + 1;
-        $month = $m + 3 - 12 * intdiv($m, 10);
-        $year = 100 * $b + $d - 4800 + intdiv($m, 10);
-
-        return new GregorianDate($year, $month, $day);
     }
 
     /**

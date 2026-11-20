@@ -164,6 +164,26 @@ final class Utils
     }
 
     /**
+     * Converts a Julian Day Number to a Gregorian date (proleptic Gregorian calendar).
+     */
+    public static function jdnToGregorian(int $jdn): GregorianDate
+    {
+        $a = $jdn + 32044;
+        $b = intdiv(4 * $a + 3, 146097);
+        $c = $a - intdiv(146097 * $b, 4);
+
+        $d = intdiv(4 * $c + 3, 1461);
+        $e = $c - intdiv(1461 * $d, 4);
+        $m = intdiv(5 * $e + 2, 153);
+
+        $day = $e - intdiv(153 * $m + 2, 5) + 1;
+        $month = $m + 3 - 12 * intdiv($m, 10);
+        $year = 100 * $b + $d - 4800 + intdiv($m, 10);
+
+        return new GregorianDate($year, $month, $day);
+    }
+
+    /**
      * Checks if a given Ethiopian date is valid.
      */
     public static function isValidEthiopianDate(int $year, int $month, int $day): bool
@@ -181,21 +201,26 @@ final class Utils
      */
     public static function getEthiopianNewYearForGregorian(int $gYear): array
     {
-        $prevGYear = $gYear - 1;
-        $newYearDay = self::isGregorianLeapYear($prevGYear) ? 12 : 11;
-        return ['gregorianYear' => $gYear, 'month' => 9, 'day' => $newYearDay];
+        // Meskerem 1 always falls in September of Gregorian year G and begins
+        // Ethiopian year G - 7.
+        return self::getGregorianDateOfEthiopianNewYear($gYear - 7);
     }
 
     /**
      * Returns the Gregorian date of the Ethiopian New Year for the given Ethiopian year.
      *
+     * Counts days from the known anchor Meskerem 1, 1964 = 1971-09-12 using the
+     * Ethiopian leap rule (year % 4 === 3 has a 6-day Pagume), which has no
+     * century exception. Deriving Sept 11/12 from the Gregorian leap rule only
+     * holds for 1900-2099.
+     *
      * @return array{gregorianYear: int, month: int, day: int}
      */
     public static function getGregorianDateOfEthiopianNewYear(int $ethiopianYear): array
     {
-        $gregorianYear = $ethiopianYear + 7;
-        $newYearDay = self::isGregorianLeapYear($gregorianYear + 1) ? 12 : 11;
-        return ['gregorianYear' => $gregorianYear, 'month' => 9, 'day' => $newYearDay];
+        $days = 365 * ($ethiopianYear - 1964) + self::floorDiv($ethiopianYear, 4) - self::floorDiv(1964, 4);
+        $g = self::jdnToGregorian(self::gregorianToJdn(1971, 9, 12) + $days);
+        return ['gregorianYear' => $g->year, 'month' => $g->month, 'day' => $g->day];
     }
 
     /**
